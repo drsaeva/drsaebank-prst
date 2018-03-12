@@ -6,9 +6,8 @@ import com.revature.dsaebank_prst.pojo.Application;
 public interface ApplicationDao {
 	
 	public void createApplication(Application application);
-	public List<Application> retrieveAllApplication();
+	public List<Application> retrieveAllOpenApplications();
 	public Application retrieveApplication(String username);
-	public void updateApplication(String username);
-	public void deleteApplication(String username);
+	public void applicationDecision(Application application);
 	
 }

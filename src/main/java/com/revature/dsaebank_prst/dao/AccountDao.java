@@ -9,7 +9,7 @@ public interface AccountDao {
 	public void createAccount(Account account);
 	public List<Account> retrieveAllAccounts();
 	public Account retrieveAccount(Long accountNumber);
-	public void updateUser(Long accountNumber);
-	public void deleteUser(Long accountNumber);
+	public void updateAccount(Account account);
+	public void deleteAccount(Long accountNumber);
 	
 }

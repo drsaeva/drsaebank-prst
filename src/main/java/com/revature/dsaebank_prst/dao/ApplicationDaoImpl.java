@@ -1,39 +1,122 @@
 package com.revature.dsaebank_prst.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.revature.dsaebank_prst.pojo.Application;
+import com.revature.dsaebank_prst.util.ConnectionFactory;
 
 public class ApplicationDaoImpl implements ApplicationDao {
 
-	@Override
+	/**
+	 * Creates a new Application record in the Applications table
+	 * @param application - Application pojo containing the data corresponding to the intended new record in the DB
+	 */
 	public void createApplication(Application application) {
-		// TODO Auto-generated method stub
-		
+		Connection conn = ConnectionFactory.getInstance().getConnection();
+		String sql = "INSERT INTO APPLICATIONS (USERNAME, STATUS, JOINT, JOINT_ACCT_NUM) VALUES('"+application.getUsername() 
+						+"', "+application.getApprovalStatus()+", "+application.getJoint()+","
+						+application.getJointAccountNumber()+"') ";
+		try {
+			conn.setAutoCommit(false);
+			PreparedStatement ps = conn.prepareStatement(sql);
+			
+			int rowsAffected = ps.executeUpdate(sql);
+			conn.commit();
+			//TODO LoggingHandler method for application creation
+			
+			conn.setAutoCommit(true);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
-	@Override
-	public List<Application> retrieveAllApplication() {
-		// TODO Auto-generated method stub
-		return null;
+	/**
+	 * Retrieves all existing Application records from the DB
+	 * @param username String corresponding to the unique APPLICATION.USERNAME column in the Application record
+	 * @return				Application pojo containing the data stored in the record
+	 */
+	public List<Application> retrieveAllOpenApplications() {
+		List<Application> allApplications = new ArrayList<Application>();
+		String sql = "SELECT * FROM OPEN_APPLICATIONS WHERE ?";
+		Connection conn = ConnectionFactory.getInstance().getConnection();
+		try {
+			conn.setAutoCommit(false);
+			PreparedStatement ps = conn.prepareStatement(sql);	
+			ResultSet rs = ps.executeQuery(); 
+			while (rs.next()) { 
+				allApplications.add(new Application(
+						rs.getInt(1),
+						rs.getString(2),
+						rs.getInt(3),
+						rs.getInt(4),
+						rs.getLong(5)
+						));
+			}			
+			//TODO LoggingHandler method for account retrieval
+			
+			conn.setAutoCommit(true);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return allApplications;
 	}
 
-	@Override
+	/**
+	 * Retrieves an existing Application record from the DB
+	 * @param username String corresponding to the unique APPLICATION.USERNAME column in the Application record
+	 * @return				Application pojo containing the data stored in the record
+	 */
 	public Application retrieveApplication(String username) {
-		// TODO Auto-generated method stub
-		return null;
+		Application application = new Application();
+		String sql = "SELECT * FROM APPLICATIONS WHERE ? ";
+		Connection conn = ConnectionFactory.getInstance().getConnection();
+		try {
+			conn.setAutoCommit(false);
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(2, username);	
+			ResultSet rs = ps.executeQuery(); 
+			while (rs.next()) { 
+				application.setId(rs.getInt(1));
+				application.setUsername(rs.getString(2));
+				application.setApprovalStatus(rs.getInt(3));
+				application.setJoint(rs.getInt(4));
+				application.setJointAccountNumber(rs.getLong(5));
+			}			
+			//TODO LoggingHandler method for account retrieval
+			
+			conn.setAutoCommit(true);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return application;
 	}
-
-	@Override
-	public void updateApplication(String username) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deleteApplication(String username) {
-		// TODO Auto-generated method stub
-		
+	
+	/**
+	 * Updates an active Application record in the DB view Open_Applications
+	 * @param application - Application pojo containing the decision status to update the existing record with
+	 */
+	public void applicationDecision(Application application) {
+		String sql = "UPDATE OPEN_APPLICATIONS SET STATUS="+application.getApprovalStatus()
+						+" WHERE USERNAME = ? ";
+		Connection conn = ConnectionFactory.getInstance().getConnection();
+		try {
+			conn.setAutoCommit(false);
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(2, application.getUsername());
+			int rowsAffected = ps.executeUpdate();
+			conn.commit();
+			//TODO LoggingHandler method for appl update
+			
+			conn.setAutoCommit(true);
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
