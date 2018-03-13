@@ -18,14 +18,17 @@ public class ApplicationDaoImpl implements ApplicationDao {
 	 */
 	public void createApplication(Application application) {
 		Connection conn = ConnectionFactory.getInstance().getConnection();
-		String sql = "INSERT INTO APPLICATIONS (USERNAME, STATUS, JOINT, JOINT_ACCT_NUM) VALUES('"+application.getUsername() 
+		String sql = "";
+		boolean joint = (application.getJointAccountNumber() != 0L);
+		if (joint) sql = "INSERT INTO APPLICATIONS (USERNAME, STATUS, JOINT, JOINT_ACC_NUM) VALUES('"+application.getUsername() 
 						+"', "+application.getApprovalStatus()+", "+application.getJoint()+","
-						+application.getJointAccountNumber()+"') ";
+						+application.getJointAccountNumber()+") ";
+		else sql = "INSERT INTO APPLICATIONS (USERNAME, STATUS, JOINT) VALUES('"+application.getUsername() 
+		+"', "+application.getApprovalStatus()+", "+application.getJoint()+") ";
 		try {
 			conn.setAutoCommit(false);
 			PreparedStatement ps = conn.prepareStatement(sql);
-			
-			int rowsAffected = ps.executeUpdate(sql);
+			int rowsAffected = ps.executeUpdate();
 			conn.commit();
 			//TODO LoggingHandler method for application creation
 			
@@ -42,13 +45,14 @@ public class ApplicationDaoImpl implements ApplicationDao {
 	 */
 	public List<Application> retrieveAllOpenApplications() {
 		List<Application> allApplications = new ArrayList<Application>();
-		String sql = "SELECT * FROM OPEN_APPLICATIONS WHERE ?";
+		String sql = "SELECT * FROM APPLICATIONS ";
 		Connection conn = ConnectionFactory.getInstance().getConnection();
 		try {
 			conn.setAutoCommit(false);
 			PreparedStatement ps = conn.prepareStatement(sql);	
 			ResultSet rs = ps.executeQuery(); 
-			while (rs.next()) { 
+			while (rs.next()) {
+				
 				allApplications.add(new Application(
 						rs.getInt(1),
 						rs.getString(2),
@@ -78,7 +82,7 @@ public class ApplicationDaoImpl implements ApplicationDao {
 		try {
 			conn.setAutoCommit(false);
 			PreparedStatement ps = conn.prepareStatement(sql);
-			ps.setString(2, username);	
+			ps.setString(1, username);	
 			ResultSet rs = ps.executeQuery(); 
 			while (rs.next()) { 
 				application.setId(rs.getInt(1));
@@ -107,7 +111,7 @@ public class ApplicationDaoImpl implements ApplicationDao {
 		try {
 			conn.setAutoCommit(false);
 			PreparedStatement ps = conn.prepareStatement(sql);
-			ps.setString(2, application.getUsername());
+			ps.setString(1, application.getUsername());
 			int rowsAffected = ps.executeUpdate();
 			conn.commit();
 			//TODO LoggingHandler method for appl update
